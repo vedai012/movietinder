@@ -7,28 +7,21 @@ TMDB_API_KEY = "94b6bc84983042915e04c3d723aab973"
 
 st.set_page_config(page_title="Movie Matcher", layout="centered")
 
-# ---------------- THE ULTIMATE MOBILE CSS ----------------
+# ---------------- THE "ULTIMATE STABILITY" CSS ----------------
 st.markdown("""
 <style>
-    /* Allow scrolling and prevent squish */
-    .block-container { 
-        padding: 1rem !important; 
-        max-width: 450px; 
-    }
+    .block-container { padding: 1rem !important; max-width: 450px; }
     
-    /* Titles */
     .main-title { text-align: center; font-size: 26px !important; font-weight: 800; margin-bottom: 2px; }
     .sub-info { text-align: center; font-size: 16px !important; color: #FF4B4B; margin-bottom: 10px; font-weight: bold; }
     .summary-text { text-align: center; font-size: 17px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
 
-    /* FORCE BUTTONS SIDE-BY-SIDE */
+    /* Target the button container to ensure it spans the full width and stays centered */
     [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        justify-content: center !important;
+        justify-content: space-evenly !important; /* This ensures both get equal space */
         align-items: center !important;
-        gap: 20px !important;
         width: 100% !important;
     }
 
@@ -42,22 +35,16 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-        transition: transform 0.1s ease !important;
     }
 
-    /* Red and Green colors */
+    /* Color Coding */
     div.stButton > button[key="skip_btn"] { background-color: #FF4B4B !important; }
     div.stButton > button[key="like_btn"] { background-color: #2ECC71 !important; }
 
-    /* Emoji icons */
+    /* Emoji Sizing */
     div.stButton > button p {
         font-size: 40px !important;
         margin: 0 !important;
-        line-height: 1 !important;
-    }
-    
-    div.stButton > button:active {
-        transform: scale(0.9) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -70,13 +57,11 @@ if "index" not in st.session_state:
 if "liked" not in st.session_state:
     st.session_state.liked = []
 
-# ---------------- DATA FETCH ----------------
 def load_content():
     try:
         page = random.randint(1, 25)
         url = f"https://api.themoviedb.org/3/trending/all/week?api_key={TMDB_API_KEY}&page={page}"
         res = requests.get(url, timeout=5).json()
-        
         g_url = f"https://api.themoviedb.org/3/genre/movie/list?api_key={TMDB_API_KEY}"
         genre_map = {g['id']: g['name'] for g in requests.get(g_url).json().get("genres", [])}
 
@@ -85,7 +70,6 @@ def load_content():
                 if item.get("media_type") == 'person': continue
                 m_type = item.get("media_type", "movie")
                 m_id = item.get("id")
-                
                 d = requests.get(f"https://api.themoviedb.org/3/{m_type}/{m_id}?api_key={TMDB_API_KEY}", timeout=5).json()
                 g_ids = item.get("genre_ids", [])
                 genre = genre_map.get(g_ids[0], "Drama") if g_ids else "Drama"
@@ -117,7 +101,7 @@ if st.session_state.index < len(st.session_state.media_list):
     st.image(item["poster"], use_container_width=True)
     st.markdown(f'<div class="summary-text">{item["summary"]}</div>', unsafe_allow_html=True)
 
-    # Thumbs Up/Down Row
+    # Force the buttons to stay in a row using space-evenly
     col1, col2 = st.columns(2)
     with col1:
         if st.button("👎", key="skip_btn"):
@@ -134,7 +118,6 @@ if st.session_state.index < len(st.session_state.media_list):
 else:
     st.button("Reload", on_click=load_content)
 
-# 🫶 Liked so far Section
 if st.session_state.liked:
     st.divider()
     st.markdown("<h2 style='text-align:center;'>🫶 Liked so far</h2>", unsafe_allow_html=True)
