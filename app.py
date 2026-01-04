@@ -37,31 +37,8 @@ st.markdown("""
     div.stButton > button[key="like_btn"] { background-color: #2ECC71 !important; }
     div.stButton > button p { font-size: 40px !important; }
 
-    /* TINY SQUARE CLEAR BUTTON */
-    div.stButton > button[key="clear_btn"] {
-        width: 55px !important;
-        height: 24px !important;
-        background-color: #333 !important;
-        border: 1px solid #555 !important;
-        color: #bbb !important;
-        padding: 0 !important;
-        min-height: unset !important;
-    }
-    div.stButton > button[key="clear_btn"] p {
-        font-size: 9px !important; /* Way way way smaller */
-        font-weight: bold !important;
-        margin: 0 !important;
-    }
-
-    /* Liked Header Row Fix */
-    .liked-header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 20px;
-        margin-bottom: 15px;
-    }
-    .liked-header-row h3 { margin: 0 !important; font-size: 20px !important; }
+    /* Standard Liked Title Styling */
+    .liked-title { text-align: center; margin-top: 20px; margin-bottom: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -75,7 +52,7 @@ if "liked" not in st.session_state:
 if "current_genre" not in st.session_state:
     st.session_state.current_genre = "All"
 
-# ---------------- DATA ----------------
+# ---------------- DATA FETCHING ----------------
 def get_genres():
     url = f"https://api.themoviedb.org/3/genre/movie/list?api_key={TMDB_API_KEY}"
     try: return {g['name']: g['id'] for g in requests.get(url).json().get("genres", [])}
@@ -155,20 +132,13 @@ if st.session_state.index < len(st.session_state.media_list):
 else:
     st.button("Load More", on_click=lambda: load_content(genre_dict.get(selected_genre)))
 
-# Liked Section
+# Liked Section (Clean & Original)
 if st.session_state.liked:
     st.divider()
-    
-    # This row fixes the "ruined" title and makes the button tiny
-    st.markdown('<div class="liked-header-row"><h3>🫶 Liked so far</h3><div id="clear-container"></div></div>', unsafe_allow_html=True)
-    
-    # We place the button right after the header manually
-    if st.button("CLEAR", key="clear_btn"):
-        st.session_state.liked = []
-        st.rerun()
+    st.markdown("<h2 style='text-align:center;'>🫶 Liked so far</h2>", unsafe_allow_html=True)
 
     cols = st.columns(2)
     for i, m in enumerate(reversed(st.session_state.liked)):
         with cols[i % 2]:
             st.image(m["poster"], use_container_width=True)
-            st.markdown(f"<p style='text-align:center; font-size:11px; line-height:1.1; margin-top:4px;'>{m['title']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align:center; font-size:12px; margin-top:4px;'>{m['title']}</p>", unsafe_allow_html=True)
