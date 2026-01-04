@@ -7,7 +7,6 @@ TMDB_API_KEY = "94b6bc84983042915e04c3d723aab973"
 
 st.set_page_config(page_title="Movie Matcher", layout="centered")
 
-# ---------------- THE "ANTI-STACK" GRID CSS ----------------
 # ---------------- THE "WIDE GRID" CSS ----------------
 st.markdown("""
 <style>
@@ -18,15 +17,15 @@ st.markdown("""
     .star-rating { text-align: center; font-size: 32px; margin-bottom: 10px; }
     .summary-text { text-align: center; font-size: 17px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
 
-    /* THE FIX: space-between pushes buttons to the far left and far right */
+    /* THE FIX: grid-template-columns pushes buttons to the far left and far right */
     [data-testid="stHorizontalBlock"] {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important; 
-        gap: 40px !important; /* Increased gap to push them apart */
+        gap: 40px !important; 
         width: 100% !important;
         justify-content: space-between !important; 
         align-items: center !important;
-        padding: 0 10px !important; /* Prevents buttons from touching the very edge of the screen */
+        padding: 0 10px !important; 
     }
 
     /* Square Button Style */
@@ -78,7 +77,6 @@ def load_content():
                 genre = genre_map.get(g_ids[0], "Drama") if g_ids else "Drama"
 
                 if d.get('poster_path'):
-                    # Stars logic
                     raw_rating = d.get('vote_average', 0)
                     star_count = max(1, round(raw_rating / 2))
                     stars = "⭐" * star_count
@@ -93,7 +91,8 @@ def load_content():
                         "extra": f"{d.get('number_of_seasons', 0)} Seasons" if m_type == 'tv' else f"{d.get('runtime', 0)}m",
                         "year": (d.get("release_date") or d.get("first_air_date") or " ")[0:4]
                     })
-    except: pass
+    except:
+        pass
 
 if not st.session_state.media_list:
     load_content()
@@ -104,18 +103,14 @@ st.markdown('<h1 style="text-align:center;">❤️ Made for Annette</h1>', unsaf
 if st.session_state.index < len(st.session_state.media_list):
     item = st.session_state.media_list[st.session_state.index]
     
-    # Header
     st.markdown(f'<div class="main-title">{item["title"]} ({item["year"]})</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="sub-info">{item["type"]} | {item["genre"]} • {item["extra"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="star-rating">{item["stars"]}</div>', unsafe_allow_html=True)
 
-    # Poster
     st.image(item["poster"], use_container_width=True)
-    
-    # Summary
     st.markdown(f'<div class="summary-text">{item["summary"]}</div>', unsafe_allow_html=True)
 
-    # TWO BUTTONS: Now using Grid to stay perfectly centered and side-by-side
+    # TWO BUTTONS
     col1, col2 = st.columns(2)
     with col1:
         if st.button("👎", key="skip_btn"):
@@ -130,7 +125,9 @@ if st.session_state.index < len(st.session_state.media_list):
     if st.session_state.index > len(st.session_state.media_list) - 3:
         load_content()
 else:
-    st.button("Reload", on_click=load_content)
+    if st.button("Reload"):
+        load_content()
+        st.rerun()
 
 # Match History
 if st.session_state.liked:
