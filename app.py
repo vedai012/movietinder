@@ -8,26 +8,25 @@ TMDB_API_KEY = "94b6bc84983042915e04c3d723aab973"
 st.set_page_config(page_title="Movie Matcher", layout="centered")
 
 # ---------------- THE "ANTI-STACK" GRID CSS ----------------
+# ---------------- THE "WIDE GRID" CSS ----------------
 st.markdown("""
 <style>
     .block-container { padding: 1rem !important; max-width: 450px; }
     
     .main-title { text-align: center; font-size: 28px !important; font-weight: 800; margin-bottom: 2px; }
     .sub-info { text-align: center; font-size: 16px !important; color: #FF4B4B; margin-bottom: 5px; font-weight: bold; }
-    
-    /* Bigger Stars */
     .star-rating { text-align: center; font-size: 32px; margin-bottom: 10px; }
-
     .summary-text { text-align: center; font-size: 17px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
 
-    /* THE FIX: Force a 2-column grid that NEVER stacks and stays centered */
+    /* THE FIX: space-between pushes buttons to the far left and far right */
     [data-testid="stHorizontalBlock"] {
         display: grid !important;
-        grid-template-columns: 1fr 1fr !important; /* Two equal halves */
-        gap: 10px !important;
+        grid-template-columns: 1fr 1fr !important; 
+        gap: 40px !important; /* Increased gap to push them apart */
         width: 100% !important;
-        justify-content: center !important;
+        justify-content: space-between !important; 
         align-items: center !important;
+        padding: 0 10px !important; /* Prevents buttons from touching the very edge of the screen */
     }
 
     /* Square Button Style */
@@ -37,9 +36,6 @@ st.markdown("""
         height: 85px !important;
         border: none !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
     }
 
     /* Colors */
