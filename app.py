@@ -103,7 +103,7 @@ if not st.session_state.media_list:
     load_content()
 
 # ---------------- UI ----------------
-st.markdown('<h1 style="text-align:center; color:#FF4B4B;">🎬 for Annette</h1>', unsafe_allow_html=True)
+st.markdown('<h1 style="text-align:center; color:#FF4B4B;">❤️for Annette❤️</h1>', unsafe_allow_html=True)
 
 if st.session_state.index < len(st.session_state.media_list):
     item = st.session_state.media_list[st.session_state.index]
@@ -121,11 +121,11 @@ if st.session_state.index < len(st.session_state.media_list):
     # 4. Circular Buttons (Using Columns but with CSS force)
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("✕", key="skip_btn"):
+        if st.button("👎", key="skip_btn"):
             st.session_state.index += 1
             st.rerun()
     with col2:
-        if st.button("✔", key="like_btn"):
+        if st.button("👍", key="like_btn"):
             st.session_state.liked.append(item)
             st.session_state.index += 1
             st.rerun()
@@ -139,7 +139,7 @@ else:
 # Matches Gallery
 if st.session_state.liked:
     st.divider()
-    st.markdown("<h2 style='text-align:center;'>❤️ Matches</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:center;'>🫶 Matches</h2>", unsafe_allow_html=True)
     cols = st.columns(2)
     for i, m in enumerate(st.session_state.liked):
         with cols[i % 2]:
