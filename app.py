@@ -16,52 +16,52 @@ st.markdown("""
     .provider-text { text-align: center; font-size: 14px; color: #2ECC71; font-weight: bold; margin-bottom: 10px; }
     .summary-text { text-align: center; font-size: 16px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
 
-    /* Main Thumb Buttons Grid */
+    /* Thumb Buttons Grid */
     [data-testid="stHorizontalBlock"] {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important; 
         gap: 20px !important; 
         width: 100% !important;
         justify-items: center !important; 
-        align-items: center !important;   
     }
 
     /* Thumb Button Styling */
     div.stButton > button {
         border-radius: 15px !important; 
-        width: 110px !important; 
-        height: 85px !important;
+        width: 100px !important; 
+        height: 80px !important;
         border: none !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
     }
     div.stButton > button[key="skip_btn"] { background-color: #FF4B4B !important; }
     div.stButton > button[key="like_btn"] { background-color: #2ECC71 !important; }
-    div.stButton > button p { font-size: 45px !important; }
+    div.stButton > button p { font-size: 40px !important; }
 
-    /* SMALL SQUARE CLEAR BUTTON NEXT TO TITLE */
+    /* TINY SQUARE CLEAR BUTTON */
     div.stButton > button[key="clear_btn"] {
-        width: 60px !important;
-        height: 30px !important;
-        background-color: #444 !important;
-        border: none !important;
-        color: white !important;
-        font-size: 10px !important;
-        border-radius: 5px !important;
+        width: 55px !important;
+        height: 24px !important;
+        background-color: #333 !important;
+        border: 1px solid #555 !important;
+        color: #bbb !important;
         padding: 0 !important;
-        margin-left: 10px !important;
+        min-height: unset !important;
     }
     div.stButton > button[key="clear_btn"] p {
-        font-size: 11px !important;
+        font-size: 9px !important; /* Way way way smaller */
         font-weight: bold !important;
+        margin: 0 !important;
     }
 
-    /* Header Container for Title + Button */
-    .liked-header {
+    /* Liked Header Row Fix */
+    .liked-header-row {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
+        margin-top: 20px;
         margin-bottom: 15px;
     }
+    .liked-header-row h3 { margin: 0 !important; font-size: 20px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -75,10 +75,10 @@ if "liked" not in st.session_state:
 if "current_genre" not in st.session_state:
     st.session_state.current_genre = "All"
 
+# ---------------- DATA ----------------
 def get_genres():
     url = f"https://api.themoviedb.org/3/genre/movie/list?api_key={TMDB_API_KEY}"
-    try:
-        return {g['name']: g['id'] for g in requests.get(url).json().get("genres", [])}
+    try: return {g['name']: g['id'] for g in requests.get(url).json().get("genres", [])}
     except: return {}
 
 def load_content(genre_id=None):
@@ -155,22 +155,20 @@ if st.session_state.index < len(st.session_state.media_list):
 else:
     st.button("Load More", on_click=lambda: load_content(genre_dict.get(selected_genre)))
 
-# Matches Section
+# Liked Section
 if st.session_state.liked:
     st.divider()
     
-    # Title and Small Clear Button in one row
-    head_col1, head_col2 = st.columns([3, 1])
-    with head_col1:
-        st.markdown("<h3 style='margin:0;'>🫶 Liked so far</h3>", unsafe_allow_html=True)
-    with head_col2:
-        if st.button("CLEAR", key="clear_btn"):
-            st.session_state.liked = []
-            st.rerun()
+    # This row fixes the "ruined" title and makes the button tiny
+    st.markdown('<div class="liked-header-row"><h3>🫶 Liked so far</h3><div id="clear-container"></div></div>', unsafe_allow_html=True)
+    
+    # We place the button right after the header manually
+    if st.button("CLEAR", key="clear_btn"):
+        st.session_state.liked = []
+        st.rerun()
 
-    # Back to 2 columns for medium-sized posters
     cols = st.columns(2)
     for i, m in enumerate(reversed(st.session_state.liked)):
         with cols[i % 2]:
             st.image(m["poster"], use_container_width=True)
-            st.markdown(f"<p style='text-align:center; font-size:12px;'>{m['title']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align:center; font-size:11px; line-height:1.1; margin-top:4px;'>{m['title']}</p>", unsafe_allow_html=True)
