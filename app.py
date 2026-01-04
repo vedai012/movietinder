@@ -74,7 +74,7 @@ if not st.session_state.media_list:
     load_trending_content()
 
 # ---------------- UI DISPLAY ----------------
-st.markdown('<h1 style="text-align:center; color:#FF4B4B;">🎬 app made for Annette</h1>', unsafe_allow_html=True)
+st.markdown('<h1 style="text-align:center; color:#FF4B4B;">💕 app made for Annette👌</h1>', unsafe_allow_html=True)
 
 # Check if we have items to show
 if st.session_state.index < len(st.session_state.media_list):
