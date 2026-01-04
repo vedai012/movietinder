@@ -13,70 +13,66 @@ SEARCH_TERMS = [
 
 st.set_page_config(page_title="Movie Tinder", layout="centered")
 
-# ---------------- CSS ----------------
-# We target the 'stButton' container and the 'button' tag inside it
+# ---------------- ROBUST CSS ----------------
 st.markdown("""
 <style>
-.title {
-    text-align: center;
-    font-size: 40px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
+    /* Title Styling */
+    .title {
+        text-align: center;
+        font-size: 42px;
+        font-weight: 800;
+        color: #ff4b4b;
+        margin-bottom: 20px;
+    }
 
-.poster {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-}
+    /* Poster and Info Styling */
+    .poster-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+    }
+    .movie-card {
+        text-align: center;
+    }
 
-.stars {
-    text-align: center;
-    font-size: 28px;
-    margin-top: 10px;
-}
+    /* THE BUTTON FIX: Force Streamlit buttons to be circles */
+    div.stButton > button {
+        border-radius: 50% !important;
+        width: 100px !important;
+        height: 100px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 auto !important;
+        border: none !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+        transition: all 0.2s ease !important;
+    }
 
-.info {
-    text-align: center;
-    font-size: 18px;
-    margin-top: 5px;
-}
+    /* Red Skip Button */
+    div.stButton > button[key="skip_btn"] {
+        background-color: #ff4b4b !important;
+        font-size: 40px !important;
+    }
 
-/* Styling the actual Streamlit buttons to be circles */
-div.stButton > button {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    font-size: 50px !important;
-    color: white !important;
-    border: none !important;
-    transition: transform 0.2s;
-}
+    /* Green Like Button */
+    div.stButton > button[key="like_btn"] {
+        background-color: #2ecc71 !important;
+        font-size: 40px !important;
+    }
 
-div.stButton > button:hover {
-    transform: scale(1.1);
-    color: white !important;
-}
+    /* Hover effect */
+    div.stButton > button:hover {
+        transform: scale(1.1) !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+    }
 
-/* Specific colors for Skip and Like */
-div.stButton > button[kind="secondary"]:nth-child(1) { 
-    /* This targets buttons generally, we will use unique keys */
-}
-
-/* We use the key names to apply specific colors */
-button[key="skip_btn"] {
-    background-color: #e74c3c !important;
-}
-
-button[key="like_btn"] {
-    background-color: #2ecc71 !important;
-}
-
-/* Centering the button container */
-.stColumn {
-    display: flex;
-    justify-content: center;
-}
+    /* Hide the default focus ring */
+    div.stButton > button:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -90,89 +86,76 @@ if "liked" not in st.session_state:
 if "movie_dict" not in st.session_state:
     st.session_state.movie_dict = {}
 
-# ---------------- FUNCTIONS ----------------
+# ---------------- LOGIC ----------------
 def load_movies():
+    # Recommendation logic based on likes
     if st.session_state.liked:
         liked_genres = []
         for movie_title in st.session_state.liked:
             info = st.session_state.movie_dict.get(movie_title)
-            if info:
-                liked_genres.extend(info['Genre'].split(', '))
+            if info: liked_genres.extend(info['Genre'].split(', '))
         term = Counter(liked_genres).most_common(1)[0][0] if liked_genres else random.choice(SEARCH_TERMS)
     else:
         term = random.choice(SEARCH_TERMS)
 
-    page = random.randint(1, 10)
-    try:
-        search_res = requests.get(
-            "http://www.omdbapi.com/",
-            params={"apikey": API_KEY, "s": term, "type": "movie", "page": page}
-        ).json()
+    res = requests.get("http://www.omdbapi.com/", params={"apikey": API_KEY, "s": term, "type": "movie", "page": random.randint(1, 10)}).json()
+    
+    if res.get("Search"):
+        for m in res["Search"]:
+            details = requests.get("http://www.omdbapi.com/", params={"apikey": API_KEY, "i": m["imdbID"]}).json()
+            if details.get("Title") and details["Title"] not in st.session_state.movie_dict:
+                st.session_state.movies.append(details)
+                st.session_state.movie_dict[details["Title"]] = details
 
-        if search_res.get("Search"):
-            for m in search_res["Search"]:
-                details = requests.get(
-                    "http://www.omdbapi.com/",
-                    params={"apikey": API_KEY, "i": m["imdbID"], "plot": "short"}
-                ).json()
-                if details["Title"] not in st.session_state.movie_dict:
-                    st.session_state.movies.append(details)
-                    st.session_state.movie_dict[details["Title"]] = details
-    except:
-        st.error("Failed to fetch movies. Check API Key or Connection.")
-
-def handle_click(action, title):
-    if action == "like":
-        st.session_state.liked.append(title)
-    st.session_state.index += 1
-    # Check if we need more movies
-    if st.session_state.index >= len(st.session_state.movies) - 2:
-        load_movies()
-
-# Initial Load
+# Initial fetch
 if not st.session_state.movies:
     load_movies()
 
-# ---------------- DISPLAY ----------------
-st.markdown('<div class="title">🎬 app made for Annette</div>', unsafe_allow_html=True)
+# ---------------- UI ----------------
+st.markdown('<div class="title">🎬 Movie Match</div>', unsafe_allow_html=True)
 
 if st.session_state.index < len(st.session_state.movies):
     movie = st.session_state.movies[st.session_state.index]
     
-    title = movie.get("Title", "Unknown")
-    year = movie.get("Year", "")
-    poster = movie.get("Poster")
-    rating = movie.get("imdbRating", "N/A")
-    genre = movie.get("Genre", "N/A")
-    plot = movie.get("Plot", "No summary available.")
+    # Display Movie Card
+    st.markdown(f"<h2 style='text-align:center;'>{movie['Title']} ({movie['Year']})</h2>", unsafe_allow_html=True)
+    
+    col_img_1, col_img_2, col_img_3 = st.columns([1, 2, 1])
+    with col_img_2:
+        if movie.get("Poster") != "N/A":
+            st.image(movie["Poster"], use_container_width=True)
+    
+    st.markdown(f"<p style='text-align:center;'><b>Genre:</b> {movie['Genre']} | <b>Rating:</b> {movie['imdbRating']}/10</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center; color: #555;'>{movie['Plot']}</p>", unsafe_allow_html=True)
 
-    st.markdown(f"<h2 style='text-align:center;'>{title} ({year})</h2>", unsafe_allow_html=True)
-
-    if poster and poster != "N/A":
-        st.markdown(f'<div class="poster"><img src="{poster}" width="300"></div>', unsafe_allow_html=True)
-
-    if rating != "N/A":
-        stars = round(float(rating)/2)
-        st.markdown(f'<div class="stars">{"★"*stars}{"☆"*(5-stars)}<br>({rating}/10)</div>', unsafe_allow_html=True)
-
-    st.markdown(f'<div class="info"><b>Genre:</b> {genre}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="info" style="padding: 0 50px;">{plot}</div>', unsafe_allow_html=True)
+    st.divider()
 
     # ---------------- CIRCULAR BUTTONS ----------------
-    # Use columns to position them like the UI design
-    col1, col2 = st.columns(2)
+    # Placing buttons in columns so they stay side-by-side
+    btn_col1, btn_col2 = st.columns(2)
 
-    with col1:
-        # We use custom CSS inside the button labels or via the style block above
-        if st.button("✖", key="skip_btn", help="Skip"):
-            handle_click("skip", title)
+    with btn_col1:
+        if st.button("✖", key="skip_btn"):
+            st.session_state.index += 1
+            if st.session_state.index >= len(st.session_state.movies) - 2:
+                load_movies()
             st.rerun()
 
-    with col2:
-        if st.button("✔", key="like_btn", help="Like"):
-            handle_click("like", title)
+    with btn_col2:
+        if st.button("✔", key="like_btn"):
+            st.session_state.liked.append(movie['Title'])
+            st.session_state.index += 1
+            if st.session_state.index >= len(st.session_state.movies) - 2:
+                load_movies()
             st.rerun()
+
 else:
-    st.write("Loading more movies...")
+    st.write("Searching for more movies...")
     load_movies()
     st.rerun()
+
+# Show matches at the very bottom
+if st.session_state.liked:
+    with st.expander("❤️ Your Matches"):
+        for m in st.session_state.liked:
+            st.write(f"✅ {m}")
