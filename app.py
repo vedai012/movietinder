@@ -9,33 +9,10 @@ SEARCH_TERMS = ["love", "war", "future", "night", "dark", "hero", "life", "game"
 
 st.set_page_config(page_title="Movie Tinder", layout="centered")
 
-# ---------------- THE ULTIMATE CSS OVERHAUL ----------------
+# ---------------- THE "FORCED COLOR" CSS ----------------
 st.markdown("""
 <style>
-    /* 1. Title and Summary - BIG & BOLD */
-    .movie-title {
-        text-align: center;
-        font-size: 50px !important;
-        font-weight: 800 !important;
-        margin-bottom: 0px;
-    }
-    
-    .summary-text {
-        text-align: center;
-        font-size: 26px !important;
-        line-height: 1.4;
-        margin-top: 20px;
-    }
-
-    /* 2. HUGE STARS */
-    .huge-stars {
-        text-align: center;
-        font-size: 60px !important;
-        margin: -10px 0px 20px 0px;
-    }
-
-    /* 3. THE CIRCLE BUTTONS - FORCED COLORS & ICONS */
-    /* Target the base button */
+    /* 1. Reset everything about the button to force colors */
     div.stButton > button {
         border-radius: 50% !important;
         width: 140px !important;
@@ -48,33 +25,44 @@ st.markdown("""
         justify-content: center !important;
     }
 
-    /* FORCED RED FOR SKIP (X) */
+    /* FORCED RED CIRCLE - Targeted by key */
     div.stButton > button[key="skip_btn"] {
-        background-color: #FF4B4B !important; 
-    }
-    /* Make the X big and white */
-    div.stButton > button[key="skip_btn"] p {
-        font-size: 70px !important;
-        font-weight: bold !important;
+        background-color: #FF0000 !important; /* Pure Red */
         color: white !important;
     }
+    div.stButton > button[key="skip_btn"]:active, 
+    div.stButton > button[key="skip_btn"]:focus,
+    div.stButton > button[key="skip_btn"]:hover {
+        background-color: #FF3333 !important;
+        color: white !important;
+        border: none !important;
+    }
 
-    /* FORCED GREEN FOR LIKE (CHECK) */
+    /* FORCED GREEN CIRCLE - Targeted by key */
     div.stButton > button[key="like_btn"] {
-        background-color: #2ECC71 !important;
-    }
-    /* Make the Check big and white */
-    div.stButton > button[key="like_btn"] p {
-        font-size: 70px !important;
-        font-weight: bold !important;
+        background-color: #00FF00 !important; /* Pure Green */
         color: white !important;
     }
-
-    /* Hover animation */
-    div.stButton > button:hover {
-        transform: scale(1.1) !important;
-        filter: brightness(1.1) !important;
+    div.stButton > button[key="like_btn"]:active,
+    div.stButton > button[key="like_btn"]:focus,
+    div.stButton > button[key="like_btn"]:hover {
+        background-color: #33FF33 !important;
+        color: white !important;
+        border: none !important;
     }
+
+    /* Make the X and Check inside huge and white */
+    div.stButton > button p {
+        font-size: 80px !important;
+        font-weight: 900 !important;
+        color: white !important;
+        margin: 0 !important;
+    }
+
+    /* Big Text Styling */
+    .movie-title { text-align: center; font-size: 50px !important; font-weight: 800 !important; }
+    .summary-text { text-align: center; font-size: 26px !important; line-height: 1.4; margin-top: 20px; }
+    .huge-stars { text-align: center; font-size: 60px !important; margin: 10px 0; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -88,7 +76,6 @@ if "liked" not in st.session_state:
 if "movie_dict" not in st.session_state:
     st.session_state.movie_dict = {}
 
-# ---------------- DATA FETCHING ----------------
 def load_movies():
     term = random.choice(SEARCH_TERMS)
     try:
@@ -104,22 +91,22 @@ def load_movies():
 if not st.session_state.movies:
     load_movies()
 
-# ---------------- APP LAYOUT ----------------
+# ---------------- UI ----------------
 st.markdown('<h1 style="text-align:center; color:#FF4B4B;">🎬 app made for Annette</h1>', unsafe_allow_html=True)
 
 if st.session_state.index < len(st.session_state.movies):
     movie = st.session_state.movies[st.session_state.index]
     
-    # 1. Movie Title (Big)
+    # Title
     st.markdown(f'<div class="movie-title">{movie["Title"]} ({movie["Year"]})</div>', unsafe_allow_html=True)
 
-    # 2. Movie Poster (Large)
-    col_img_1, col_img_2, col_img_3 = st.columns([1, 4, 1])
-    with col_img_2:
+    # Poster
+    col_1, col_2, col_3 = st.columns([1, 4, 1])
+    with col_2:
         if movie.get("Poster") != "N/A":
             st.image(movie["Poster"], use_container_width=True)
 
-    # 3. Big Stars (Right under poster)
+    # HUGE Stars right under poster
     try:
         rating = float(movie.get("imdbRating", 0))
         stars_count = round(rating / 2)
@@ -127,13 +114,13 @@ if st.session_state.index < len(st.session_state.movies):
     except:
         st.markdown('<div class="huge-stars">⭐⭐⭐</div>', unsafe_allow_html=True)
 
-    # 4. Large Summary and Genre
+    # Summary
     st.markdown(f'<div class="summary-text"><b>Genre:</b> {movie["Genre"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="summary-text">{movie["Plot"]}</div>', unsafe_allow_html=True)
 
     st.divider()
 
-    # 5. FIXED CIRCLE BUTTONS
+    # THE BUTTONS
     btn_col_1, btn_col_2 = st.columns(2)
 
     with btn_col_1:
@@ -151,10 +138,10 @@ if st.session_state.index < len(st.session_state.movies):
                 load_movies()
             st.rerun()
 
-# ---------------- MATCH GALLERY ----------------
+# Match Gallery
 if st.session_state.liked:
     st.divider()
-    st.markdown("<h2 style='text-align:center;'>❤️ Annette's Liked Movies</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:center;'>❤️ Annette's Matches</h2>", unsafe_allow_html=True)
     cols = st.columns(3)
     for i, m in enumerate(st.session_state.liked):
         with cols[i % 3]:
