@@ -7,42 +7,48 @@ TMDB_API_KEY = "94b6bc84983042915e04c3d723aab973"
 
 st.set_page_config(page_title="Movie Matcher", layout="centered")
 
-# ---------------- STABLE MOBILE CSS ----------------
+# ---------------- THE "ANTI-STACK" GRID CSS ----------------
 st.markdown("""
 <style>
     .block-container { padding: 1rem !important; max-width: 450px; }
     
-    .main-title { text-align: center; font-size: 26px !important; font-weight: 800; margin-bottom: 2px; }
+    .main-title { text-align: center; font-size: 28px !important; font-weight: 800; margin-bottom: 2px; }
     .sub-info { text-align: center; font-size: 16px !important; color: #FF4B4B; margin-bottom: 5px; font-weight: bold; }
     
-    /* Stars Styling */
-    .star-rating { text-align: center; font-size: 24px; margin-bottom: 10px; }
+    /* Bigger Stars */
+    .star-rating { text-align: center; font-size: 32px; margin-bottom: 10px; }
 
     .summary-text { text-align: center; font-size: 17px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
 
-    /* SQUARE BUTTON FIX: Using flex-row with no wrap to stop stacking */
+    /* THE FIX: Force a 2-column grid that NEVER stacks and stays centered */
     [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        justify-content: center !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important; /* Two equal halves */
         gap: 10px !important;
+        width: 100% !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     /* Square Button Style */
     div.stButton > button {
-        border-radius: 12px !important; /* Rounded squares */
+        border-radius: 15px !important; 
         width: 100% !important;
-        height: 80px !important;
+        height: 85px !important;
         border: none !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
+    /* Colors */
     div.stButton > button[key="skip_btn"] { background-color: #FF4B4B !important; }
     div.stButton > button[key="like_btn"] { background-color: #2ECC71 !important; }
 
+    /* Thumb Emojis */
     div.stButton > button p {
-        font-size: 40px !important;
+        font-size: 45px !important;
         margin: 0 !important;
     }
 </style>
@@ -58,7 +64,7 @@ if "liked" not in st.session_state:
 
 def load_content():
     try:
-        page = random.randint(1, 30)
+        page = random.randint(1, 40)
         url = f"https://api.themoviedb.org/3/trending/all/week?api_key={TMDB_API_KEY}&page={page}"
         res = requests.get(url, timeout=5).json()
         
@@ -76,9 +82,9 @@ def load_content():
                 genre = genre_map.get(g_ids[0], "Drama") if g_ids else "Drama"
 
                 if d.get('poster_path'):
-                    # Calculate Stars
+                    # Stars logic
                     raw_rating = d.get('vote_average', 0)
-                    star_count = round(raw_rating / 2)
+                    star_count = max(1, round(raw_rating / 2))
                     stars = "⭐" * star_count
 
                     st.session_state.media_list.append({
@@ -102,18 +108,18 @@ st.markdown('<h1 style="text-align:center;">❤️ Made for Annette</h1>', unsaf
 if st.session_state.index < len(st.session_state.media_list):
     item = st.session_state.media_list[st.session_state.index]
     
+    # Header
     st.markdown(f'<div class="main-title">{item["title"]} ({item["year"]})</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="sub-info">{item["type"]} | {item["genre"]} • {item["extra"]}</div>', unsafe_allow_html=True)
-    
-    # Stars Back In
     st.markdown(f'<div class="star-rating">{item["stars"]}</div>', unsafe_allow_html=True)
 
+    # Poster
     st.image(item["poster"], use_container_width=True)
     
-    # Summary Above Buttons
+    # Summary
     st.markdown(f'<div class="summary-text">{item["summary"]}</div>', unsafe_allow_html=True)
 
-    # Square Buttons Row
+    # TWO BUTTONS: Now using Grid to stay perfectly centered and side-by-side
     col1, col2 = st.columns(2)
     with col1:
         if st.button("👎", key="skip_btn"):
@@ -130,6 +136,7 @@ if st.session_state.index < len(st.session_state.media_list):
 else:
     st.button("Reload", on_click=load_content)
 
+# Match History
 if st.session_state.liked:
     st.divider()
     st.markdown("<h2 style='text-align:center;'>🫶 Liked so far</h2>", unsafe_allow_html=True)
