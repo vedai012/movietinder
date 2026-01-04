@@ -45,29 +45,36 @@ st.markdown("""
     margin-top: 5px;
 }
 
-/* Circular buttons */
-.stButton>button#skip {
-    background-color: #e74c3c !important;  /* Red */
-    color: white !important;
-    border-radius: 50% !important;
-    width: 120px !important;
-    height: 120px !important;
-    font-size: 50px !important;
-    font-weight: bold !important;
-    border: none !important;
+/* Circular buttons using <button> */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 150px;
 }
-.stButton>button#like {
-    background-color: #2ecc71 !important;  /* Green */
-    color: white !important;
-    border-radius: 50% !important;
-    width: 120px !important;
-    height: 120px !important;
-    font-size: 50px !important;
-    font-weight: bold !important;
-    border: none !important;
+
+.circle-button {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: none;
+    font-size: 60px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s;
 }
-.stButton>button:hover {
+
+.circle-button:hover {
     transform: scale(1.1);
+}
+
+#like {
+    background-color: #2ecc71;
+}
+
+#skip {
+    background-color: #e74c3c;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -89,18 +96,13 @@ if "movie_dict" not in st.session_state:
 
 # ---------------- FUNCTION TO LOAD MOVIES ----------------
 def load_movies():
-    # Recommendation: use top genre from likes
     if st.session_state.liked:
         liked_genres = []
         for movie_title in st.session_state.liked:
             info = st.session_state.movie_dict.get(movie_title)
             if info:
                 liked_genres.extend(info['Genre'].split(', '))
-        if liked_genres:
-            top_genre = Counter(liked_genres).most_common(1)[0][0]
-            term = top_genre
-        else:
-            term = random.choice(SEARCH_TERMS)
+        term = Counter(liked_genres).most_common(1)[0][0] if liked_genres else random.choice(SEARCH_TERMS)
     else:
         term = random.choice(SEARCH_TERMS)
 
@@ -166,16 +168,27 @@ st.markdown(f'<div class="info"><b>Genre:</b> {genre}</div>', unsafe_allow_html=
 st.markdown(f'<div class="info">{plot}</div>', unsafe_allow_html=True)
 
 # ---------------- CIRCULAR BUTTONS ----------------
-col1, col2, col3 = st.columns([1,2,1])
+st.markdown("""
+<div class="button-container">
+    <form action="" method="post">
+        <button id="skip" class="circle-button" name="skip">✖</button>
+        <button id="like" class="circle-button" name="like">✔</button>
+    </form>
+</div>
+""", unsafe_allow_html=True)
 
+# Detect button clicks using session_state
+clicked = st.experimental_get_query_params().get("clicked", [""])[0]
+
+# Workaround: Use regular Streamlit buttons hidden to trigger logic
+col1, col2, col3 = st.columns([1,2,1])
 with col1:
-    if st.button("✖", key="skip"):
+    if st.button("✖ Skip", key="skip_hidden"):
         st.session_state.skipped.append(title)
         st.session_state.index += 1
         st.rerun()
-
 with col3:
-    if st.button("✔", key="like"):
+    if st.button("✔ Like", key="like_hidden"):
         st.session_state.liked.append(title)
         st.session_state.index += 1
         st.rerun()
