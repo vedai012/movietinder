@@ -7,7 +7,7 @@ TMDB_API_KEY = "94b6bc84983042915e04c3d723aab973"
 
 st.set_page_config(page_title="Movie Matcher", layout="centered")
 
-# ---------------- THE "WIDE GRID" CSS ----------------
+# ---------------- THE PERFECT X-AXIS CSS ----------------
 st.markdown("""
 <style>
     .block-container { padding: 1rem !important; max-width: 450px; }
@@ -17,24 +17,25 @@ st.markdown("""
     .star-rating { text-align: center; font-size: 32px; margin-bottom: 10px; }
     .summary-text { text-align: center; font-size: 17px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
 
-    /* THE FIX: grid-template-columns pushes buttons to the far left and far right */
+    /* THE GRID FIX: Force equal columns and center the buttons inside them */
     [data-testid="stHorizontalBlock"] {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important; 
-        gap: 40px !important; 
+        gap: 20px !important; 
         width: 100% !important;
-        justify-content: space-between !important; 
-        align-items: center !important;
-        padding: 0 10px !important; 
+        justify-items: center !important; 
+        align-items: center !important;   
+        padding: 0 10px !important;
     }
 
     /* Square Button Style */
     div.stButton > button {
         border-radius: 15px !important; 
-        width: 100% !important;
+        width: 100px !important; 
         height: 85px !important;
         border: none !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
+        margin: 0 auto !important; 
     }
 
     /* Colors */
