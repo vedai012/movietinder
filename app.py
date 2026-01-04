@@ -7,54 +7,57 @@ TMDB_API_KEY = "94b6bc84983042915e04c3d723aab973"
 
 st.set_page_config(page_title="Movie Matcher", layout="centered")
 
-# ---------------- CSS FIXES ----------------
+# ---------------- THE ULTIMATE MOBILE CSS ----------------
 st.markdown("""
 <style>
-    /* Allow scrolling while keeping mobile layout tight */
-    .block-container { padding: 1rem !important; max-width: 450px; }
+    /* Allow scrolling and prevent squish */
+    .block-container { 
+        padding: 1rem !important; 
+        max-width: 450px; 
+    }
     
-    .main-title { text-align: center; font-size: 28px !important; font-weight: 800; margin-bottom: 2px; }
-    .sub-info { text-align: center; font-size: 18px !important; color: #FF4B4B; margin-bottom: 15px; font-weight: bold; }
-    
-    /* Summary styling - now above buttons */
-    .summary-text { 
-        text-align: center; 
-        font-size: 18px !important; 
-        line-height: 1.5; 
-        color: #eee; 
-        margin-bottom: 20px;
-        padding: 0 10px;
+    /* Titles */
+    .main-title { text-align: center; font-size: 26px !important; font-weight: 800; margin-bottom: 2px; }
+    .sub-info { text-align: center; font-size: 16px !important; color: #FF4B4B; margin-bottom: 10px; font-weight: bold; }
+    .summary-text { text-align: center; font-size: 17px !important; line-height: 1.4; color: #eee; margin-bottom: 20px; }
+
+    /* FORCE BUTTONS SIDE-BY-SIDE */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 20px !important;
+        width: 100% !important;
     }
 
-    /* THE BUTTON FIX: Force side-by-side circles using a table container */
-    .button-table {
-        width: 100%;
-        margin: 20px 0;
-    }
-
-    /* Target Streamlit buttons specifically to force them into circles */
+    /* Circle Buttons */
     div.stButton > button {
         border-radius: 50% !important;
-        width: 110px !important;
-        height: 110px !important;
+        width: 85px !important;
+        height: 85px !important;
         border: none !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        margin: 0 auto !important;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.5) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+        transition: transform 0.1s ease !important;
     }
 
     /* Red and Green colors */
     div.stButton > button[key="skip_btn"] { background-color: #FF4B4B !important; }
     div.stButton > button[key="like_btn"] { background-color: #2ECC71 !important; }
 
-    /* X and Check icons */
+    /* Emoji icons */
     div.stButton > button p {
-        font-size: 50px !important;
-        color: white !important;
-        font-weight: bold !important;
+        font-size: 40px !important;
         margin: 0 !important;
+        line-height: 1 !important;
+    }
+    
+    div.stButton > button:active {
+        transform: scale(0.9) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -70,7 +73,7 @@ if "liked" not in st.session_state:
 # ---------------- DATA FETCH ----------------
 def load_content():
     try:
-        page = random.randint(1, 20)
+        page = random.randint(1, 25)
         url = f"https://api.themoviedb.org/3/trending/all/week?api_key={TMDB_API_KEY}&page={page}"
         res = requests.get(url, timeout=5).json()
         
@@ -94,8 +97,8 @@ def load_content():
                         "summary": d.get("overview", "No summary available."),
                         "type": m_type.upper(),
                         "genre": genre,
-                        "extra": f"{d.get('number_of_seasons')} Seasons" if m_type == 'tv' else f"{d.get('runtime')}m",
-                        "year": (d.get("release_date") or d.get("first_air_date") or " ")[0:4]
+                        "extra": f"{d.get('number_of_seasons', 0)} Seasons" if m_type == 'tv' else f"{d.get('runtime', 0)}m",
+                        "year": (d.get("release_date") or d.get("first_air_date") or "    ")[0:4]
                     })
     except: pass
 
@@ -103,22 +106,18 @@ if not st.session_state.media_list:
     load_content()
 
 # ---------------- UI ----------------
-st.markdown('<h1 style="text-align:center; color:#FF4B4B;">❤️for Annette❤️</h1>', unsafe_allow_html=True)
+st.markdown('<h1 style="text-align:center;">❤️ Made for Annette</h1>', unsafe_allow_html=True)
 
 if st.session_state.index < len(st.session_state.media_list):
     item = st.session_state.media_list[st.session_state.index]
     
-    # 1. Header
     st.markdown(f'<div class="main-title">{item["title"]} ({item["year"]})</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="sub-info">{item["type"]} | {item["genre"]} • {item["extra"]}</div>', unsafe_allow_html=True)
 
-    # 2. Poster
     st.image(item["poster"], use_container_width=True)
-
-    # 3. Summary (Now Above Buttons)
     st.markdown(f'<div class="summary-text">{item["summary"]}</div>', unsafe_allow_html=True)
 
-    # 4. Circular Buttons (Using Columns but with CSS force)
+    # Thumbs Up/Down Row
     col1, col2 = st.columns(2)
     with col1:
         if st.button("👎", key="skip_btn"):
@@ -130,16 +129,15 @@ if st.session_state.index < len(st.session_state.media_list):
             st.session_state.index += 1
             st.rerun()
 
-    # Prefetch logic
     if st.session_state.index > len(st.session_state.media_list) - 3:
         load_content()
 else:
-    st.button("Reload Content", on_click=load_content)
+    st.button("Reload", on_click=load_content)
 
-# Matches Gallery
+# 🫶 Liked so far Section
 if st.session_state.liked:
     st.divider()
-    st.markdown("<h2 style='text-align:center;'>🫶 Matches</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:center;'>🫶 Liked so far</h2>", unsafe_allow_html=True)
     cols = st.columns(2)
     for i, m in enumerate(st.session_state.liked):
         with cols[i % 2]:
