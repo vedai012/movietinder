@@ -12,79 +12,43 @@ st.set_page_config(page_title="Movie Tinder", layout="centered")
 # ---------------- THE ULTIMATE CSS FIX ----------------
 st.markdown("""
 <style>
-    /* Center the title */
-    .title {
-        text-align: center;
-        font-size: 42px;
-        font-weight: 800;
-        color: #ff4b4b;
-        margin-bottom: 20px;
-    }
-
-    /* Target the button containers to center them */
-    [data-testid="stHorizontalBlock"] {
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Reset Streamlit Button Styles */
+    /* 1. Reset Streamlit Button to a Perfect Circle */
     div.stButton > button {
         border-radius: 50% !important;
-        width: 120px !important;
-        height: 120px !important;
+        width: 100px !important;
+        height: 100px !important;
         border: none !important;
-        color: transparent !important; /* Hide the text, we'll use pseudo-elements */
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
-        transition: all 0.3s ease !important;
-        position: relative !important;
-        display: block !important;
+        color: white !important; /* This makes the X/Check white */
+        font-weight: bold !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         margin: 0 auto !important;
     }
 
-    /* RED SKIP BUTTON (X) */
+    /* 2. Red Circle for Skip (X) */
     div.stButton > button[key="skip_btn"] {
-        background-color: #ff4b4b !important;
-    }
-    div.stButton > button[key="skip_btn"]::after {
-        content: "✕";
-        color: white !important;
-        font-size: 60px !important;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-weight: bold;
+        background-color: #FF4B4B !important; /* Bright Red */
+        font-size: 50px !important;
     }
 
-    /* GREEN LIKE BUTTON (Check) */
+    /* 3. Green Circle for Like (Check) */
     div.stButton > button[key="like_btn"] {
-        background-color: #2ecc71 !important;
-    }
-    div.stButton > button[key="like_btn"]::after {
-        content: "✔";
-        color: white !important;
-        font-size: 60px !important;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-weight: bold;
+        background-color: #2ECC71 !important; /* Bright Green */
+        font-size: 50px !important;
     }
 
-    /* Hover animation */
+    /* 4. Hover Effects */
     div.stButton > button:hover {
-        transform: scale(1.15) !important;
-        box-shadow: 0 12px 24px rgba(0,0,0,0.3) !important;
+        transform: scale(1.1) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        color: white !important;
     }
 
-    /* Match Gallery Styling */
-    .match-card {
-        background-color: #f0f2f6;
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        text-align: center;
-    }
+    /* 5. Title & Info Styling */
+    .title { text-align: center; font-size: 40px; font-weight: bold; color: #FF4B4B; }
+    .movie-info { text-align: center; margin-top: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -94,79 +58,74 @@ if "movies" not in st.session_state:
 if "index" not in st.session_state:
     st.session_state.index = 0
 if "liked" not in st.session_state:
-    st.session_state.liked = [] # List of dicts for the gallery
+    st.session_state.liked = []
 if "movie_dict" not in st.session_state:
     st.session_state.movie_dict = {}
 
-# ---------------- FUNCTIONS ----------------
+# ---------------- FETCH LOGIC ----------------
 def load_movies():
     term = random.choice(SEARCH_TERMS)
     try:
-        res = requests.get("http://www.omdbapi.com/", params={"apikey": API_KEY, "s": term, "type": "movie", "page": random.randint(1, 10)}).json()
+        res = requests.get(f"http://www.omdbapi.com/?apikey={API_KEY}&s={term}&type=movie&page={random.randint(1,5)}").json()
         if res.get("Search"):
             for m in res["Search"]:
-                details = requests.get("http://www.omdbapi.com/", params={"apikey": API_KEY, "i": m["imdbID"]}).json()
-                if details.get("Title") and details["Title"] not in st.session_state.movie_dict:
+                details = requests.get(f"http://www.omdbapi.com/?apikey={API_KEY}&i={m['imdbID']}").json()
+                if details.get("Title") not in st.session_state.movie_dict:
                     st.session_state.movies.append(details)
                     st.session_state.movie_dict[details["Title"]] = details
-    except:
-        pass
+    except: pass
 
 if not st.session_state.movies:
     load_movies()
 
-# ---------------- MAIN UI ----------------
+# ---------------- UI LAYOUT ----------------
 st.markdown('<div class="title">🎬 app made for Annette</div>', unsafe_allow_html=True)
 
 if st.session_state.index < len(st.session_state.movies):
     movie = st.session_state.movies[st.session_state.index]
     
-    # Poster Display
+    # Show Movie
+    st.markdown(f"<h2 style='text-align:center;'>{movie['Title']}</h2>", unsafe_allow_html=True)
+    
     col_a, col_b, col_c = st.columns([1, 2, 1])
     with col_b:
         if movie.get("Poster") != "N/A":
             st.image(movie["Poster"], use_container_width=True)
-        st.markdown(f"<h3 style='text-align:center;'>{movie['Title']}</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align:center;'>{movie['Genre']} • {movie['imdbRating']}/10</p>", unsafe_allow_html=True)
+    
+    st.markdown(f"<div class='movie-info'><b>{movie['Genre']}</b> • ⭐ {movie['imdbRating']}</div>", unsafe_allow_html=True)
+    st.write(f"_{movie['Plot']}_")
 
-    # ---------------- CIRCULAR BUTTONS ----------------
-    # We use empty spacer columns to push buttons to the center
-    btn_spacer1, btn_skip, btn_like, btn_spacer2 = st.columns([1, 1, 1, 1])
+    st.divider()
 
-    with btn_skip:
-        if st.button(" ", key="skip_btn"): # Space is hidden by CSS anyway
+    # ---------------- THE CIRCLE BUTTONS ----------------
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        # The text inside 'st.button' is what appears in white
+        if st.button("✕", key="skip_btn"):
             st.session_state.index += 1
             if st.session_state.index >= len(st.session_state.movies) - 2:
                 load_movies()
             st.rerun()
 
-    with btn_like:
-        if st.button(" ", key="like_btn"):
-            st.session_state.liked.append({
-                "title": movie['Title'],
-                "poster": movie.get("Poster"),
-                "year": movie.get("Year")
-            })
+    with col_right:
+        if st.button("✔", key="like_btn"):
+            st.session_state.liked.append(movie)
             st.session_state.index += 1
             if st.session_state.index >= len(st.session_state.movies) - 2:
                 load_movies()
             st.rerun()
 else:
-    st.write("Fetching movies...")
+    st.write("Finding more movies...")
     load_movies()
     st.rerun()
 
-# ---------------- MATCH GALLERY ----------------
+# ---------------- LIKED GALLERY ----------------
 if st.session_state.liked:
     st.divider()
-    st.subheader("❤️ Annette's Liked Movies")
-    
-    # Display matches in a grid
+    st.subheader("❤️ Annette's Matches")
     cols = st.columns(3)
-    for idx, item in enumerate(st.session_state.liked):
-        with cols[idx % 3]:
-            st.markdown(f'<div class="match-card">', unsafe_allow_html=True)
-            if item["poster"] != "N/A":
-                st.image(item["poster"], use_container_width=True)
-            st.caption(f"{item['title']} ({item['year']})")
-            st.markdown('</div>', unsafe_allow_html=True)
+    for i, m in enumerate(st.session_state.liked):
+        with cols[i % 3]:
+            if m.get("Poster") != "N/A":
+                st.image(m["Poster"], caption=m["Title"], use_container_width=True)
